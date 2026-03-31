@@ -1,33 +1,37 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from .models import CustomUser
 from django.contrib.auth import authenticate
 
 
 # 🟢 Register Serializer
 class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
-        model = User
-        fields = ['username', 'email', 'password']
+        model = CustomUser
+        fields = ['username', 'email', 'password', 'phone']
 
     def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
+        return CustomUser.objects.create_user(**validated_data)
 
 
-# 🟢 Login Serializer
+# 🟢 Login Serializer (email login)
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
-        if user:
-            return user
-        raise serializers.ValidationError("Invalid credentials")
+        user = authenticate(
+            username=data['email'],   # 🔥 email is used as username
+            password=data['password']
+        )
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+        return user
 
 
 # 🟢 Profile Serializer
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id', 'username', 'email']
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'phone']

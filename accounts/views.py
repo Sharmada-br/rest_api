@@ -3,11 +3,21 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .serializers import RegisterSerializer, LoginSerializer, ProfileSerializer
+from .models import CustomUser
+from rest_framework.permissions import AllowAny
 
 
-# 🟢 Register API
+class HomeView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        users = CustomUser.objects.all()
+        serializer = ProfileSerializer(users, many=True)
+        return Response(serializer.data)
+
+
+# 🟢 Register API 
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
